@@ -21,10 +21,12 @@ def _deprecated(fn_name=None, replacement=None):
         if isinstance(fn, JITFunction):
             # Wrapping a JITFunction in a plain function breaks both the host
             # launch (`fn[grid](...)`) and the in-kernel inline path, since the
-            # code generator would no longer see a JITFunction. Warn at import
-            # time and pass the function through untouched.
-            warn(message, FutureWarning, stacklevel=2)
+            # code generator would no longer see a JITFunction. Keep the
+            # deprecation notice in its documentation, but do not emit a
+            # warning while importing the module: imports should not warn for
+            # deprecated APIs that the caller may never use.
             fn.__doc__ = f"{fn.__doc__ or ''}\n\n.. warning::\n   {message}"
+            setattr(fn, _DEPRECATED_MESSAGE_ATTR, message)
             return fn
 
         @wraps(fn)
